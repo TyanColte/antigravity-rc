@@ -156,14 +156,15 @@ async def poll_tmux_status():
                 
                 for line in reversed(lines[-20:]):
                     line = line.strip()
-                    if not line or line.startswith('>'):
+                    if not line or line.startswith('>') or line.startswith('▸'):
                         continue
                     # Only match spinner-style status lines (short, capitalized, single phrase ending in ...)
                     if line.endswith('...') and len(line) < 80:
                         # Filter out user-typed content
                         if any(c in line for c in ['?', '!', ',', '"', "'", '(', ')']):
                             continue
-                        match = re.search(r'^[^A-Za-z]*([A-Z][a-zA-Z\s]+)\.\.\.\s*$', line)
+                        # Strictly require a Braille spinner character [⠀-⣿] before the status text
+                        match = re.search(r'^.*[⠀-⣿]\s+([A-Z][a-zA-Z\s]+)\.\.\.\s*$', line)
                         if match:
                             current_status = match.group(1).strip() + "..."
                             break
