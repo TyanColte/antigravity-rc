@@ -8,6 +8,8 @@ Antigravity RC Portal is a lightweight, real-time web interface for remotely con
 - **Remote Commands:** Send messages and commands directly to the agent's `tmux` session.
 - **Image Support:** Attach images to your messages (up to 10MB).
 - **Execution Control:** Halt a runaway agent using the built-in halt command (sends `Ctrl+C` to the `tmux` pane).
+- **Local Message Queuing:** Messages typed while the agent is busy are intelligently queued on the client-side, allowing you to edit or stack multiple instructions before they are safely dispatched.
+- **Voice Input:** Use the built-in microphone button (leveraging the Web Speech API) to dictate commands hands-free.
 - **PWA Ready:** Install the portal as a Progressive Web App on your mobile device.
 - **Theming:** Multiple built-in themes (Cyberpunk, Ocean, Matrix, Dracula, Gruvbox) and custom background support.
 
@@ -80,5 +82,7 @@ To integrate the RC Portal directly into your Antigravity chat as a slash comman
 Once running, navigate to the portal in your web browser (e.g., `http://localhost:8000` or your reverse-proxied domain like `https://rc.yourdomain.com`).
 
 - **Chat**: Type in the input box and press Enter or the send button to dispatch a message to the agent.
+- **Voice Dictation**: Click and hold the microphone button to dictate a message. Release to stop recording.
+- **Message Queuing**: If you send a message while the agent is busy thinking or executing a tool, the interface will hold your message in a local queue banner. You can freely edit or clear queued messages before the agent finishes.
 - **Attach Images**: Click the image icon to select and upload an image context to the agent.
 - **Themes**: Click the palette icon in the top right to switch between visual themes.
