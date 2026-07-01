@@ -1,0 +1,66 @@
+#!/bin/zsh
+if [ -z "$TMUX" ]; then
+    echo "Error: You must be inside a tmux session to run the RC portal!"
+    exit 1
+fi
+
+CURRENT_SESSION=$(tmux display-message -p '#S')
+CURRENT_PANE=$(tmux display-message -p '#D')
+
+if [ -n "$1" ]; then
+    TARGET_PANE="$1"
+else
+    # 1. Try to find a pane running 'agy' in this session
+    AGY_PANE=$(tmux list-panes -s -F '#D #{pane_current_command}' | awk '$2=="agy"{print $1}' | head -n 1)
+    if [ -n "$AGY_PANE" ]; then
+        TARGET_PANE="$AGY_PANE"
+    else
+        # 2. Try to find the "other" pane in this window
+        OTHER_PANE=$(tmux list-panes -F '#D' | grep -v "^$CURRENT_PANE\$" | head -n 1)
+        if [ -n "$OTHER_PANE" ]; then
+            TARGET_PANE="$OTHER_PANE"
+        else
+            # 3. Fallback to session active pane
+            TARGET_PANE="$CURRENT_SESSION"
+        fi
+    fi
+fi
+
+if [ -f /tmp/rc_conversation_id.txt ]; then
+    export CONVERSATION_ID=$(cat /tmp/rc_conversation_id.txt)
+else
+    export CONVERSATION_ID="your-conversation-id-here"
+fi
+
+echo "🚀 Starting Antigravity RC Portal..."
+echo "💬 Current conversation ID: $CONVERSATION_ID"
+echo "🎯 Binding text injection to Target Pane: $TARGET_PANE"
+echo "🌐 Access the portal at https://rc.tyan.omegaos.us"
+echo "🛑 Press Ctrl+C to stop."
+echo ""
+cd /home/tyancolte/git/antigravity-rc/backend
+source venv/bin/activate
+export TMUX_SESSION="$TARGET_PANE"
+uvicorn main:app --host 0.0.0.0 --port 23457 &
+UVICORN_PID=$!
+
+# Monitor the target pane and kill uvicorn if agy exits
+while true; do
+    # Get the TTY of the target pane
+    PANE_TTY=$(tmux list-panes -F '#{pane_tty}' -t "$TARGET_PANE" 2>/dev/null)
+    
+    # If the pane no longer exists, break
+    if [ -z "$PANE_TTY" ]; then
+        break
+    fi
+    
+    # Check if 'agy' is still running in that TTY
+    if ! ps -o comm= -t "$PANE_TTY" | grep -q "^agy$"; then
+        break
+    fi
+    
+    sleep 2
+done
+
+echo "🛑 agy has exited. Stopping RC portal..."
+kill $UVICORN_PID
