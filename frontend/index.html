@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Antigravity RC</title>
+
+    <!-- PWA Manifest & Theme -->
+    <meta name="theme-color" content="#1e1e2e">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+    
+    <!-- Google Fonts for modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Material Symbols for icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
+    
+    <link rel="stylesheet" href="style.css?v=14">
+    
+    <!-- DOMPurify for XSS protection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js" defer></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-panel">
+            <div class="header-left">
+                <div class="logo-circle">
+                    <span class="material-symbols-rounded">rocket_launch</span>
+                </div>
+                <div>
+                    <h1>Antigravity</h1>
+                    <span class="status-indicator">
+                        <span class="status-dot"></span>
+                        <span id="connection-status">Connecting...</span>
+                    </span>
+                </div>
+            </div>
+            <div class="header-right" style="display: flex; gap: 8px; position: relative;">
+                <button id="bg-btn" class="icon-btn" title="Set Custom Background URL">
+                    <span class="material-symbols-rounded">wallpaper</span>
+                </button>
+                <div class="theme-wrapper" style="position: relative;">
+                    <button id="theme-btn" class="icon-btn" title="Select Theme">
+                        <span class="material-symbols-rounded">palette</span>
+                    </button>
+                    <div id="theme-menu" class="glass-panel" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 10px; flex-direction: column; min-width: 200px; z-index: 200; border-radius: 12px; overflow: hidden;">
+                        <button class="theme-option" data-theme="">Antigravity (Default)</button>
+                        <button class="theme-option" data-theme="theme-cyberpunk">Cyberpunk</button>
+                        <button class="theme-option" data-theme="theme-ocean">Ocean</button>
+                        <button class="theme-option" data-theme="theme-matrix">Matrix</button>
+                        <button class="theme-option" data-theme="theme-dracula">Dracula</button>
+                        <button class="theme-option" data-theme="theme-gruvbox">Gruvbox</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat Area -->
+        <main id="chat-container" class="chat-container">
+            <div id="messages" class="messages-list">
+                <!-- Messages will be injected here -->
+            </div>
+            <div id="typing-indicator" class="message msg-agent" style="display: none; margin-bottom: 20px;">
+                <div class="msg-bubble typing-bubble" style="display: flex; align-items: center; gap: 10px;">
+                    <div class="spinner"></div>
+                    <span id="typing-status-text" style="font-family: 'JetBrains Mono', monospace; font-size: 0.9em; color: var(--text-secondary);"></span>
+                </div>
+            </div>
+            <button id="scroll-to-bottom-btn" class="glass-panel" style="display: none; position: sticky; bottom: 20px; margin: 0 auto 20px auto; width: max-content; padding: 8px 16px; border-radius: 20px; cursor: pointer; color: var(--text-primary); font-family: inherit; z-index: 100; font-size: 0.9rem; border: 1px solid var(--border-accent); align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                <span class="material-symbols-rounded" style="font-size: 1.2rem;">arrow_downward</span>
+                New Activity
+            </button>
+        </main>
+
+        <!-- Queued Message Banner -->
+        <div id="queued-banner" class="glass-panel" style="display: none; margin: 0 20px; padding: 10px 16px; border-radius: 12px 12px 0 0; border-bottom: none; font-size: 0.85rem; color: var(--text-secondary);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span><span class="material-symbols-rounded" style="font-size: 1rem; vertical-align: middle; margin-right: 4px;">schedule</span> Message queued — will send when agent is idle</span>
+                <div style="display: flex; gap: 4px;">
+                    <button id="edit-queued-btn" class="icon-btn" title="Edit Queued Message" style="padding: 2px;">
+                        <span class="material-symbols-rounded" style="font-size: 1rem;">edit</span>
+                    </button>
+                    <button id="clear-queued-btn" class="icon-btn" title="Cancel Queued Message" style="padding: 2px;">
+                        <span class="material-symbols-rounded" style="font-size: 1rem;">close</span>
+                    </button>
+                </div>
+            </div>
+            <div id="queued-text" style="margin-top: 6px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; max-height: 60px; overflow-y: auto; word-break: break-word; white-space: pre-wrap;"></div>
+        </div>
+
+        <!-- Input Area -->
+        <footer class="input-area glass-panel">
+            <div id="attachment-preview" class="attachment-preview" style="display: none;">
+                <img id="attachment-thumb" src="" alt="Attachment">
+                <button id="remove-attachment" class="icon-btn remove-btn">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+            <div class="input-wrapper">
+                <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                <button id="attach-btn" class="icon-btn" title="Attach Image">
+                    <span class="material-symbols-rounded">image</span>
+                </button>
+                <textarea 
+                    id="message-input" 
+                    placeholder="Message Antigravity..." 
+                    rows="1"
+                    autofocus
+                ></textarea>
+                <button id="send-btn" class="icon-btn send-btn primary-btn">
+                    <span class="material-symbols-rounded">send</span>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Markdown Parser (marked.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+
+    <script src="app.js?v=23"></script>
+    <!-- PWA Service Worker Registration -->
+    <script>
+        // Dynamically inject the manifest to completely bypass SSO proxies
+        const manifest = {
+          "name": "Antigravity RC",
+          "short_name": "Antigravity",
+          "description": "Remote Control Portal for Antigravity AI",
+          "start_url": window.location.origin + "/",
+          "display": "standalone",
+          "background_color": "#1e1e2e",
+          "theme_color": "#4285f4",
+          "icons": [
+            { "src": window.location.origin + "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+            { "src": window.location.origin + "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+            { "src": window.location.origin + "/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+            { "src": window.location.origin + "/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+          ]
+        };
+        const blob = new Blob([JSON.stringify(manifest)], {type: 'application/manifest+json'});
+        const manifestUrl = URL.createObjectURL(blob);
+        const link = document.createElement('link');
+        link.rel = 'manifest';
+        link.href = manifestUrl;
+        document.head.appendChild(link);
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js?v=47')
+                .then(reg => console.log('Service Worker registered', reg))
+                .catch(err => console.log('Service Worker registration failed', err));
+        }
+    </script>
+</body>
+</html>
